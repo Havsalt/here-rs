@@ -1,0 +1,9 @@
+[package]
+name = "hr"
+version = "0.2.0"
+edition = "2021"
+
+[dependencies]
+clap = { version = "4.5.20", features = ["derive"] }
+cli-clipboard = "0.4.0"
+colored = "2.1.0"
