@@ -1,6 +1,7 @@
 use clap::Parser;
 use cli_clipboard;
 use colored::Colorize;
+use path_clean::PathClean;
 use core::str;
 use std::env::current_dir;
 use std::path::PathBuf;
@@ -8,7 +9,11 @@ use std::process::Command;
 use std::str::FromStr;
 
 #[derive(Parser, Debug)]
-#[command(version, about, long_about = None)]
+#[command(
+    version,
+    about = "Copies the current working directory to clipboard",
+    long_about = None
+)]
 struct Args {
     #[arg(default_value = ".")]
     segment_or_name: String,
@@ -16,7 +21,11 @@ struct Args {
     folder_component: bool,
     #[arg(short, long = "from-where", help = "Use `where` command to search")]
     where_search: bool,
-    #[arg(short = 'd', long, help = "Set current working directory to result (schedules writing)")]
+    #[arg(
+        short = 'd',
+        long,
+        help = "Set current working directory to result (schedules writing)"
+    )]
     change_directory: bool,
     #[arg(short, long, help = "Escape backslashes (\\ -> \\\\)")]
     escape_backslash: bool,
@@ -33,11 +42,17 @@ fn main() {
 
     let path = if args.where_search {
         // TODO: Fix process not starting correctly
-        let output = Command::new("cmd")
-            .arg("where")
-            // .arg(&args.segment_or_name)
-            .output()
-            .expect("'where' command found path to program/script on Windows");
+        let output = if cfg!(target_os = "windows") {
+            Command::new("cmd")
+                .arg("/C")
+                .arg(format!("where {}", args.segment_or_name))
+                .output()
+                .expect("'where' command found path to program/script on Windows")
+        } else {
+            panic!()
+        };
+        // dbg!(&output.stdout);
+        // println!("{}", str::from_utf8(&output.stdout).unwrap());
         let str_path = str::from_utf8(&output.stdout).unwrap();
         PathBuf::from_str(str_path).unwrap()
     } else {
@@ -50,12 +65,11 @@ fn main() {
         }
     };
 
-    let absolute_path = path.canonicalize().unwrap();
+    let absolute_path = path.clean();
+    // Apply styling options
     let visual = absolute_path
         .display()
         .to_string()
-        .strip_prefix("\\\\?\\") // On Windows, absolute paths may be prefixed with `\\?\`
-        .unwrap()
         .to_string();
 
     let visual = if args.wrap_quote {
