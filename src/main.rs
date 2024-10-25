@@ -12,16 +12,26 @@ use std::str::FromStr;
 struct Args {
     #[arg(default_value = ".")]
     segment_or_name: String,
-    #[arg(short, long = "folder")]
-    folder_mode: bool,
-    #[arg(short, long = "where")]
-    where_mode: bool,
+    #[arg(short, long = "folder", help = "Get folder component of result")]
+    folder_component: bool,
+    #[arg(short, long = "from-where", help = "Use `where` command to search")]
+    where_search: bool,
+    #[arg(short = 'd', long, help = "Set current working directory to result (schedules writing)")]
+    change_directory: bool,
+    #[arg(short, long, help = "Escape backslashes (\\ -> \\\\)")]
+    escape_backslash: bool,
+    #[arg(short = 'q', long, help = "Wrap result in double quotes")]
+    wrap_quote: bool,
+    #[arg(short = 'n', long, help = "Prevent copy to clipboard")]
+    no_copy: bool,
+    #[arg(short = 'c', long, help = "Suppress color")]
+    no_color: bool,
 }
 
 fn main() {
     let args = Args::parse();
 
-    let path = if args.where_mode {
+    let path = if args.where_search {
         // TODO: Fix process not starting correctly
         let output = Command::new("cmd")
             .arg("where")
@@ -33,7 +43,7 @@ fn main() {
     } else {
         let path = current_dir().unwrap();
         let location = path.join(&args.segment_or_name);
-        if args.folder_mode & location.is_file() {
+        if args.folder_component & location.is_file() {
             location.parent().unwrap().to_path_buf()
         } else {
             location
@@ -48,6 +58,25 @@ fn main() {
         .unwrap()
         .to_string();
 
-    cli_clipboard::set_contents(visual.to_owned()).unwrap();
-    println!("{}", visual.truecolor(250, 128, 114));
+    let visual = if args.wrap_quote {
+        format!("\"{}\"", visual)
+    } else {
+        visual
+    };
+
+    let visual = if args.escape_backslash {
+        visual.replace("\\", "\\\\")
+    } else {
+        visual
+    };
+
+    // Final actions
+    if !args.no_copy {
+        cli_clipboard::set_contents(visual.to_owned()).unwrap();
+    }
+    if args.no_color {
+        println!("{}", visual);
+    } else {
+        println!("{}", visual.truecolor(250, 128, 114));
+    }
 }
