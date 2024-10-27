@@ -1,8 +1,8 @@
 use clap::Parser;
 use cli_clipboard;
 use colored::Colorize;
-use path_clean::PathClean;
 use core::str;
+use path_clean::PathClean;
 use std::env::current_dir;
 use std::path::PathBuf;
 use std::process::Command;
@@ -40,6 +40,7 @@ struct Args {
 fn main() {
     let args = Args::parse();
 
+    // Select where to extract the raw path from
     let path = if args.where_search {
         // TODO: Fix process not starting correctly
         let output = if cfg!(target_os = "windows") {
@@ -49,28 +50,27 @@ fn main() {
                 .output()
                 .expect("'where' command found path to program/script on Windows")
         } else {
-            panic!()
+            todo!("implement for Linux")
         };
-        // dbg!(&output.stdout);
-        // println!("{}", str::from_utf8(&output.stdout).unwrap());
-        let str_path = str::from_utf8(&output.stdout).unwrap();
-        PathBuf::from_str(str_path).unwrap()
+        let str_path = str::from_utf8(&output.stdout)
+            .expect("path string is valid UTF-8")
+            .trim();
+        PathBuf::from_str(str_path).expect("valid path string format")
     } else {
         let path = current_dir().unwrap();
-        let location = path.join(&args.segment_or_name);
-        if args.folder_component & location.is_file() {
-            location.parent().unwrap().to_path_buf()
-        } else {
-            location
-        }
+        path.join(&args.segment_or_name)
     };
 
-    let absolute_path = path.clean();
+    // Apply path manipulations
+    let path = path.clean();
+    let path = if args.folder_component & path.is_file() {
+        path.parent().unwrap().to_path_buf()
+    } else {
+        path
+    };
+
     // Apply styling options
-    let visual = absolute_path
-        .display()
-        .to_string()
-        .to_string();
+    let visual = path.display().to_string().to_string();
 
     let visual = if args.wrap_quote {
         format!("\"{}\"", visual)
