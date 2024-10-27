@@ -1,6 +1,6 @@
 [package]
 name = "hr"
-version = "0.4.0"
+version = "0.5.0"
 edition = "2021"
 description = "Copies the current working directory to clipboard"
 homepage = "https://github.com/Havsalt/here-rs"
