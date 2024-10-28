@@ -35,6 +35,10 @@ struct Args {
     no_copy: bool,
     #[arg(short = 'c', long, help = "Suppress color")]
     no_color: bool,
+    #[arg(long = "posix", conflicts_with = "no_posix", help = "Force posix style path")]
+    posix: bool,
+    #[arg(long = "no-posix", conflicts_with = "posix", help = "Prevent posix style path")]
+    no_posix: bool,
 }
 
 fn main() {
@@ -71,6 +75,14 @@ fn main() {
 
     // Apply styling options
     let visual = path.display().to_string().to_string();
+
+    let visual = if args.posix {
+        visual.replace("\\", "/")
+    } else if args.no_posix {
+        visual.replace("/", "\\")
+    } else {
+        visual
+    };
 
     let visual = if args.wrap_quote {
         format!("\"{}\"", visual)
