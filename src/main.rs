@@ -15,7 +15,7 @@ use std::str::FromStr;
     long_about = None
 )]
 struct Args {
-    #[arg(default_value = ".")]
+    #[arg(default_value = ".", value_name = "PATH SEGMENT / SEARCH PROGRAM")]
     segment_or_name: String,
     #[arg(short, long = "folder", help = "Get folder component of result")]
     folder_component: bool,
