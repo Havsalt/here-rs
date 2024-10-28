@@ -12,4 +12,4 @@ colored = "2.1.0"
 path-clean = "1.0.1"
 
 [profile.release]
-opt-level = 1
+opt-level = "z"
