@@ -2,10 +2,11 @@ use clap::Parser;
 use cli_clipboard;
 use colored::Colorize;
 use core::str;
+use inquire::Select;
 use path_clean::PathClean;
 use std::env::current_dir;
 use std::path::PathBuf;
-use std::process::Command;
+use std::process::{Command, ExitCode};
 use std::str::FromStr;
 
 #[derive(Parser, Debug)]
@@ -49,7 +50,7 @@ struct Args {
     no_posix: bool,
 }
 
-fn main() {
+fn main() -> ExitCode {
     let args = Args::parse();
 
     // Select where to extract the raw path from
@@ -64,19 +65,37 @@ fn main() {
         } else {
             todo!("implement for Linux")
         };
-        let str_path = str::from_utf8(&output.stdout)
+        let str_result = str::from_utf8(&output.stdout)
             .expect("path string is valid UTF-8")
-            .trim();
+            .trim()
+            .replace("\r", "")
+            .leak();
+        // Check for multiresult
+        let str_path = if str_result.contains("\n") {
+            let options: Vec<&str> = str_result.split("\n").collect();
+            let select = Select::new("Select a path:", options);
+            match select.prompt_skippable() {
+                Ok(answer) => match answer {
+                    Some(str_answer) => str_answer,
+                    None => return ExitCode::FAILURE,
+                },
+                Err(_) => return ExitCode::FAILURE,
+            }
+        } else {
+            str_result
+        };
         PathBuf::from_str(str_path).expect("valid path string format")
     } else {
-        let path = current_dir().unwrap();
+        let path = current_dir().expect("cwd was found and have permission");
         path.join(&args.segment_or_name)
     };
 
     // Apply path manipulations
     let path = path.clean();
     let path = if args.folder_component & path.is_file() {
-        path.parent().unwrap().to_path_buf()
+        path.parent()
+            .expect("both current path and parent path is valid")
+            .to_path_buf()
     } else {
         path
     };
@@ -106,11 +125,13 @@ fn main() {
 
     // Final actions
     if !args.no_copy {
-        cli_clipboard::set_contents(visual.to_owned()).unwrap();
+        cli_clipboard::set_contents(visual.to_owned()).expect("clipboard opened successfully");
     }
     if args.no_color {
         println!("{}", visual);
     } else {
         println!("{}", visual.truecolor(250, 128, 114));
     }
+
+    ExitCode::SUCCESS
 }
