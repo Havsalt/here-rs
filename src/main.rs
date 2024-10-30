@@ -110,7 +110,7 @@ fn main() -> ExitCode {
             let msg2 = "cannot be".gray();
             let program = "\".\"".white();
             println!("{error} {msg1} {arg} {msg2} {program}");
-            return ExitCode::FAILURE;    
+            return ExitCode::FAILURE;
         }
         match string_path_from_search(&args.segment_or_name) {
             Ok(string_path) => {
