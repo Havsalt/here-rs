@@ -7,7 +7,6 @@ use path_clean::PathClean;
 use std::env::current_dir;
 use std::path::PathBuf;
 use std::process::{Command, ExitCode};
-use std::str::FromStr;
 
 #[derive(Parser, Debug)]
 #[command(
@@ -50,44 +49,55 @@ struct Args {
     no_posix: bool,
 }
 
+fn string_path_from_search(program: &str) -> Result<String, ExitCode> {
+    let output = if cfg!(target_os = "windows") {
+        Command::new("cmd")
+            .arg("/C")
+            .arg(format!("where {}", program))
+            .output()
+            .expect("'where' command found path to program/script on Windows")
+    } else {
+        todo!("implement for Linux")
+    };
+    let text = str::from_utf8(&output.stdout)
+        .expect("path string is valid UTF-8")
+        .trim()
+        .replace("\r", "")
+        .leak();
+    if text.contains("\n") {
+        let options: Vec<&str> = text.split("\n").collect();
+        let select = Select::new("Select a path:", options);
+        return match select.prompt_skippable() {
+            Ok(answer) => match answer {
+                Some(str_answer) => Ok(str_answer.to_owned()),
+                None => return Err(ExitCode::FAILURE),
+            },
+            Err(_) => return Err(ExitCode::FAILURE),
+        };
+    }
+    return Ok(text.to_owned());
+}
+
+// TODO?: Make custom Error enum for all things that can fail
 fn main() -> ExitCode {
     let args = Args::parse();
 
-    // Select where to extract the raw path from
+    // Select where to extract the path from
     let path = if args.where_search {
-        // TODO: Fix process not starting correctly
-        let output = if cfg!(target_os = "windows") {
-            Command::new("cmd")
-                .arg("/C")
-                .arg(format!("where {}", args.segment_or_name))
-                .output()
-                .expect("'where' command found path to program/script on Windows")
-        } else {
-            todo!("implement for Linux")
-        };
-        let str_result = str::from_utf8(&output.stdout)
-            .expect("path string is valid UTF-8")
-            .trim()
-            .replace("\r", "")
-            .leak();
-        // Check for multiresult
-        let str_path = if str_result.contains("\n") {
-            let options: Vec<&str> = str_result.split("\n").collect();
-            let select = Select::new("Select a path:", options);
-            match select.prompt_skippable() {
-                Ok(answer) => match answer {
-                    Some(str_answer) => str_answer,
-                    None => return ExitCode::FAILURE,
-                },
-                Err(_) => return ExitCode::FAILURE,
+        match string_path_from_search(&args.segment_or_name) {
+            Ok(string_path) => {
+                if string_path.is_empty() {
+                    return ExitCode::FAILURE;
+                } else {
+                    PathBuf::from(string_path)
+                }
             }
-        } else {
-            str_result
-        };
-        PathBuf::from_str(str_path).expect("valid path string format")
+            Err(exit_code) => return exit_code,
+        }
     } else {
-        let path = current_dir().expect("cwd was found and have permission");
-        path.join(&args.segment_or_name)
+        current_dir()
+            .expect("cwd was found and have permission")
+            .join(&args.segment_or_name)
     };
 
     // Apply path manipulations
