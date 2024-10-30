@@ -16,7 +16,7 @@ use std::process::{Command, ExitCode};
     long_about = None
 )]
 struct Args {
-    #[arg(default_value = ".", value_name = "PATH SEGMENT / SEARCH PROGRAM")]
+    #[arg(default_value = ".", value_name = "PATH SEGMENT / PROGRAM SEARCH")]
     segment_or_name: String,
     #[arg(short, long = "folder", help = "Get folder component of result")]
     folder_component: bool,
@@ -103,6 +103,15 @@ fn main() -> ExitCode {
 
     // Select where to extract the path from
     let path = if args.where_search {
+        if args.segment_or_name == "." {
+            let error = "[Error]".crimson();
+            let msg1 = "Argument".gray();
+            let arg = "[PROGRAM SEARCH]".white();
+            let msg2 = "cannot be".gray();
+            let program = "\".\"".white();
+            println!("{error} {msg1} {arg} {msg2} {program}");
+            return ExitCode::FAILURE;    
+        }
         match string_path_from_search(&args.segment_or_name) {
             Ok(string_path) => {
                 if string_path.is_empty() {
