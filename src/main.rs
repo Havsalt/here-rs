@@ -1,6 +1,7 @@
 use clap::Parser;
 use cli_clipboard;
-use colored::Colorize;
+use colored;
+use colored::{ColoredString, Colorize};
 use core::str;
 use inquire::Select;
 use path_clean::PathClean;
@@ -78,7 +79,25 @@ fn string_path_from_search(program: &str) -> Result<String, ExitCode> {
     return Ok(text.to_owned());
 }
 
-// TODO?: Make custom Error enum for all things that can fail
+trait ExtendedColorize: Colorize {
+    fn crimson(self) -> ColoredString;
+    fn salmon(self) -> ColoredString;
+    fn gray(self) -> ColoredString;
+}
+
+// Implement the new trait for any type that implements Colorize
+impl<T: Colorize> ExtendedColorize for T {
+    fn crimson(self) -> ColoredString {
+        self.truecolor(220, 20, 60)
+    }
+    fn salmon(self) -> ColoredString {
+        self.truecolor(250, 128, 128) // Using Magenta as a close approximation
+    }
+    fn gray(self) -> ColoredString {
+        self.truecolor(128, 128, 128)
+    }
+}
+
 fn main() -> ExitCode {
     let args = Args::parse();
 
@@ -87,6 +106,10 @@ fn main() -> ExitCode {
         match string_path_from_search(&args.segment_or_name) {
             Ok(string_path) => {
                 if string_path.is_empty() {
+                    let error = "[Error]".crimson();
+                    let msg = "Could not find".gray();
+                    let program = format!("\"{}\"", args.segment_or_name).white(); // White
+                    println!("{error} {msg} {program}");
                     return ExitCode::FAILURE;
                 } else {
                     PathBuf::from(string_path)
@@ -140,7 +163,7 @@ fn main() -> ExitCode {
     if args.no_color {
         println!("{}", visual);
     } else {
-        println!("{}", visual.truecolor(250, 128, 114));
+        println!("{}", visual.salmon());
     }
 
     ExitCode::SUCCESS
