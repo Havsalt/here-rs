@@ -48,9 +48,11 @@ struct Args {
         help = "Prevent posix style path"
     )]
     no_posix: bool,
+    #[arg(long = "select-first", help = "Select first option if multiresult (when: -w/--from-where)")]
+    select_first_option: bool,
 }
 
-fn string_path_from_search(program: &str) -> Result<String, ExitCode> {
+fn string_path_from_search(program: &str, select_first_option: &bool) -> Result<String, ExitCode> {
     let output = if cfg!(target_os = "windows") {
         Command::new("cmd")
             .arg("/C")
@@ -67,6 +69,9 @@ fn string_path_from_search(program: &str) -> Result<String, ExitCode> {
         .leak();
     if text.contains("\n") {
         let options: Vec<&str> = text.split("\n").collect();
+        if select_first_option.to_owned() {
+            return Ok(options[0].to_owned());
+        }
         let select = Select::new("Select a path:", options);
         return match select.prompt_skippable() {
             Ok(answer) => match answer {
@@ -112,7 +117,7 @@ fn main() -> ExitCode {
             println!("{error} {msg1} {arg} {msg2} {program}");
             return ExitCode::FAILURE;
         }
-        match string_path_from_search(&args.segment_or_name) {
+        match string_path_from_search(&args.segment_or_name, &args.select_first_option) {
             Ok(string_path) => {
                 if string_path.is_empty() {
                     let error = "[Error]".crimson();
