@@ -48,7 +48,10 @@ struct Args {
         help = "Prevent posix style path"
     )]
     no_posix: bool,
-    #[arg(long = "select-first", help = "Select first option if multiresult (when: -w/--from-where)")]
+    #[arg(
+        long = "select-first",
+        help = "Select first option if multiresult (when: -w/--from-where)"
+    )]
     select_first_option: bool,
 }
 
