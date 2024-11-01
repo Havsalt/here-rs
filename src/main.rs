@@ -63,7 +63,7 @@ fn main() -> ExitCode {
     let args = Args::parse();
 
     // Select where to extract the path from
-    let path = if args.where_search {
+    let mut path = if args.where_search {
         if args.segment_or_name == "." {
             let error = "[Error]".crimson();
             let msg1 = "Argument".gray();
@@ -94,7 +94,7 @@ fn main() -> ExitCode {
     };
 
     // Apply path manipulations
-    let mut path = path.clean();
+    path = path.clean();
     
     if args.folder_component & path.is_file() {
         path = path.parent()
