@@ -1,13 +1,17 @@
-use clap::Parser;
-use cli_clipboard;
-use colored;
-use colored::{ColoredString, Colorize};
-use core::str;
-use inquire::Select;
-use path_clean::PathClean;
 use std::env::current_dir;
 use std::path::PathBuf;
-use std::process::{Command, ExitCode};
+use std::process::ExitCode;
+
+use clap::Parser;
+use cli_clipboard;
+use colored::Colorize;
+use path_clean::PathClean;
+
+mod colorize_ext;
+use colorize_ext::ExtendedColorize;
+
+mod util;
+use util::string_path_from_search;
 
 #[derive(Parser, Debug)]
 #[command(
@@ -53,57 +57,6 @@ struct Args {
         help = "Select first option if multiresult (when: -w/--from-where)"
     )]
     select_first_option: bool,
-}
-
-fn string_path_from_search(program: &str, select_first_option: &bool) -> Result<String, ExitCode> {
-    let output = if cfg!(target_os = "windows") {
-        Command::new("cmd")
-            .arg("/C")
-            .arg(format!("where {}", program))
-            .output()
-            .expect("'where' command found path to program/script on Windows")
-    } else {
-        todo!("implement for Linux")
-    };
-    let text = str::from_utf8(&output.stdout)
-        .expect("path string is valid UTF-8")
-        .trim()
-        .replace("\r", "")
-        .leak();
-    if text.contains("\n") {
-        let options: Vec<&str> = text.split("\n").collect();
-        if select_first_option.to_owned() {
-            return Ok(options[0].to_owned());
-        }
-        let select = Select::new("Select a path:", options);
-        return match select.prompt_skippable() {
-            Ok(answer) => match answer {
-                Some(str_answer) => Ok(str_answer.to_owned()),
-                None => return Err(ExitCode::FAILURE),
-            },
-            Err(_) => return Err(ExitCode::FAILURE),
-        };
-    }
-    return Ok(text.to_owned());
-}
-
-trait ExtendedColorize: Colorize {
-    fn crimson(self) -> ColoredString;
-    fn salmon(self) -> ColoredString;
-    fn gray(self) -> ColoredString;
-}
-
-// Implement the new trait for any type that implements Colorize
-impl<T: Colorize> ExtendedColorize for T {
-    fn crimson(self) -> ColoredString {
-        self.truecolor(220, 20, 60)
-    }
-    fn salmon(self) -> ColoredString {
-        self.truecolor(250, 128, 128) // Using Magenta as a close approximation
-    }
-    fn gray(self) -> ColoredString {
-        self.truecolor(128, 128, 128)
-    }
 }
 
 fn main() -> ExitCode {
