@@ -94,37 +94,30 @@ fn main() -> ExitCode {
     };
 
     // Apply path manipulations
-    let path = path.clean();
-    let path = if args.folder_component & path.is_file() {
-        path.parent()
+    let mut path = path.clean();
+    
+    if args.folder_component & path.is_file() {
+        path = path.parent()
             .expect("both current path and parent path is valid")
             .to_path_buf()
-    } else {
-        path
-    };
+    }
 
     // Apply styling options
-    let visual = path.display().to_string().to_string();
+    let mut visual = path.display().to_string().to_string();
 
-    let visual = if args.posix {
-        visual.replace("\\", "/")
+    if args.posix {
+        visual = visual.replace("\\", "/")
     } else if args.no_posix {
-        visual.replace("/", "\\")
-    } else {
-        visual
-    };
+        visual = visual.replace("/", "\\")
+    }
 
-    let visual = if args.wrap_quote {
-        format!("\"{}\"", visual)
-    } else {
-        visual
-    };
+    if args.wrap_quote {
+        visual = format!("\"{}\"", visual)
+    }
 
-    let visual = if args.escape_backslash {
-        visual.replace("\\", "\\\\")
-    } else {
-        visual
-    };
+    if args.escape_backslash {
+        visual = visual.replace("\\", "\\\\")
+    }
 
     // Final actions
     if !args.no_copy {
