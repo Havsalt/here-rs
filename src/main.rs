@@ -13,11 +13,15 @@ use colorize_ext::ExtendedColorize;
 mod util;
 use util::string_path_from_search;
 
+mod styles;
+use styles::STYLES;
+
 #[derive(Parser, Debug)]
 #[command(
     version,
     about = "Copies the current working directory to clipboard",
-    long_about = None
+    long_about = None,
+    styles = STYLES
 )]
 struct Args {
     #[arg(default_value = ".", value_name = "PATH SEGMENT / PROGRAM SEARCH")]
