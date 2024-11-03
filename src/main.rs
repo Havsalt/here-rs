@@ -95,9 +95,10 @@ fn main() -> ExitCode {
 
     // Apply path manipulations
     path = path.clean();
-    
+
     if args.folder_component & path.is_file() {
-        path = path.parent()
+        path = path
+            .parent()
             .expect("both current path and parent path is valid")
             .to_path_buf()
     }
