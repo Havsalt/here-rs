@@ -1,11 +1,12 @@
 [package]
 name = "here"
-version = "0.11.2"
+version = "0.12.0"
 edition = "2021"
 description = "Copies the current working directory to clipboard"
 homepage = "https://github.com/Havsalt/here-rs"
 
 [dependencies]
+anstyle = "1.0.10"
 clap = { version = "4.5.20", features = ["derive", "wrap_help"] }
 cli-clipboard = "0.4.0"
 colored = "2.1.0"
