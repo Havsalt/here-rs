@@ -8,7 +8,7 @@ use colored::Colorize;
 use path_clean::PathClean;
 
 mod colorize_ext;
-use colorize_ext::ExtendedColorize;
+use colorize_ext::ColorizeExt;
 
 mod util;
 use util::string_path_from_search;

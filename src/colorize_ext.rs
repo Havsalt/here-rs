@@ -1,13 +1,13 @@
 use colored::{ColoredString, Colorize};
 
-pub trait ExtendedColorize: Colorize {
+pub trait ColorizeExt: Colorize {
     fn crimson(self) -> ColoredString;
     fn salmon(self) -> ColoredString;
     fn gray(self) -> ColoredString;
 }
 
 // Implement the new trait for any type that implements Colorize
-impl<T: Colorize> ExtendedColorize for T {
+impl<T: Colorize> ColorizeExt for T {
     fn crimson(self) -> ColoredString {
         self.truecolor(220, 20, 60)
     }
