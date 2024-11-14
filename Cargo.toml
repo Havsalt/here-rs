@@ -4,7 +4,7 @@ version = "0.14.0"
 edition = "2021"
 description = "Copies the current working directory to clipboard"
 license = "MIT"
-homepage = "https://github.com/Havsalt/here-rs"
+homepage = "https://github.com/havsalt/here-rs"
 authors = ["Havsalt <77575424+Havsalt@users.noreply.github.com>"]
 
 [dependencies]
