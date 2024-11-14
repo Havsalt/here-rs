@@ -6,6 +6,7 @@ use clap::Parser;
 use cli_clipboard;
 use colored::Colorize;
 use path_clean::PathClean;
+use enigo::{Enigo, Key, Keyboard, Settings};
 
 mod colorize_ext;
 use colorize_ext::ColorizeExt;
@@ -108,7 +109,7 @@ fn main() -> ExitCode {
     }
 
     // Apply styling options
-    let mut visual = path.display().to_string().to_string();
+    let mut visual = path.display().to_string();
 
     if args.posix {
         visual = visual.replace("\\", "/")
@@ -132,6 +133,13 @@ fn main() -> ExitCode {
         println!("{}", visual);
     } else {
         println!("{}", visual.salmon());
+    }
+    if args.change_directory {
+        let mut keyboard = Enigo::new(&Settings::default()).unwrap();
+        let quoted_path = format!("\"{}\"", path.display());
+        let command = format!("cd {quoted_path}");
+        let _ = keyboard.text(&command);
+        let _ = keyboard.key(Key::Return, enigo::Direction::Press);
     }
 
     ExitCode::SUCCESS
