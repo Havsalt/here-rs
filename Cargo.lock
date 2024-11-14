@@ -399,6 +399,16 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "1e087f84d4f86bf4b218b927129862374b72199ae7d8657835f1e89000eea4fb"
 
 [[package]]
+name = "havsalt-clap-styles"
+version = "0.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "d19013eba79fcce4e463fbefde5367635ebe0c602ed998084f8a0b933f90a227"
+dependencies = [
+ "anstyle",
+ "clap",
+]
+
+[[package]]
 name = "heck"
 version = "0.5.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -406,13 +416,14 @@ checksum = "2304e00983f87ffb38b55b444b5e3b60a884b5d30c0fca7d82fe33449bbe55ea"
 
 [[package]]
 name = "here"
-version = "0.13.0"
+version = "0.14.0"
 dependencies = [
  "anstyle",
  "clap",
  "cli-clipboard",
  "colored",
  "enigo",
+ "havsalt-clap-styles",
  "inquire",
  "path-clean",
 ]
