@@ -5,17 +5,15 @@ use std::process::ExitCode;
 use clap::Parser;
 use cli_clipboard;
 use colored::Colorize;
-use path_clean::PathClean;
 use enigo::{Enigo, Key, Keyboard, Settings};
+use havsalt_clap_styles::STYLES;
+use path_clean::PathClean;
 
 mod colorize_ext;
 use colorize_ext::ColorizeExt;
 
 mod util;
 use util::string_path_from_search;
-
-mod styles;
-use styles::STYLES;
 
 #[derive(Parser, Debug)]
 #[command(
