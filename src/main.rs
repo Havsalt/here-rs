@@ -1,6 +1,6 @@
-use std::{env::current_dir, fs};
 use std::path::PathBuf;
 use std::process::ExitCode;
+use std::{env::current_dir, fs};
 
 use clap::Parser;
 use cli_clipboard;
@@ -26,7 +26,7 @@ use fetch::string_path_from_search;
 struct Args {
     #[arg(default_value = ".", value_name = "PATH SEGMENT / PROGRAM SEARCH")]
     segment_or_name: String,
-    #[arg(short, long = "folder", help = "Get folder component of result")]
+    #[arg(short = 'f', long = "folder", help = "Get folder component of result")]
     folder_component: bool,
     #[arg(short, long = "from-where", help = "Use `where` command to search")]
     where_search: bool,
@@ -36,10 +36,12 @@ struct Args {
         help = "Set current working directory to result (schedules writing)"
     )]
     change_directory: bool,
-    #[arg(short, long, help = "Escape backslashes (\\ -> \\\\)")]
+    #[arg(short = 'e', long, help = "Escape backslashes (\\ -> \\\\)")]
     escape_backslash: bool,
     #[arg(short = 'q', long, help = "Wrap result in double quotes")]
     wrap_quote: bool,
+    #[arg(short = 'r', long, help = "Resolve symlink path")]
+    resolve_symlink: bool,
     #[arg(short = 'n', long, help = "Prevent copy to clipboard")]
     no_copy: bool,
     #[arg(short = 'c', long, help = "Suppress color")]
@@ -103,6 +105,14 @@ fn main() -> ExitCode {
 
     // Apply path manipulations
     path = path.clean();
+
+    if args.resolve_symlink {
+        if path.is_symlink() {
+            path = fs::read_link(path).unwrap();  // TODO: Handle `.unwrap()`
+        } else {
+            println!("[Warning] {} is not a symlink", path.display());
+        }
+    }
 
     if args.folder_component & path.is_file() {
         path = path
