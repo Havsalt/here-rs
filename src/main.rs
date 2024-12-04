@@ -1,4 +1,4 @@
-use std::env::current_dir;
+use std::{env::current_dir, fs};
 use std::path::PathBuf;
 use std::process::ExitCode;
 
@@ -12,8 +12,8 @@ use path_clean::PathClean;
 mod colorize_ext;
 use colorize_ext::ColorizeExt;
 
-mod util;
-use util::string_path_from_search;
+mod fetch;
+use fetch::string_path_from_search;
 
 #[derive(Parser, Debug)]
 #[command(
