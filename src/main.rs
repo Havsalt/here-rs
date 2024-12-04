@@ -89,7 +89,7 @@ fn main() -> ExitCode {
                 if string_path.is_empty() {
                     let label = "[Error]".crimson();
                     let msg = "Could not find".gray();
-                    let program = format!("\"{}\"", args.segment_or_name).white(); // White
+                    let program = format!("\"{}\"", args.segment_or_name).white();
                     println!("{label} {msg} {program}");
                     return ExitCode::FAILURE;
                 } else {
