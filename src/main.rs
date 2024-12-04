@@ -60,6 +60,7 @@ struct Args {
     no_posix_style: bool,
     #[arg(
         long = "select-first",
+        requires = "where_search",
         help = "Select first option if multiresult (when: -w/--from-where)"
     )]
     select_first_option: bool,
