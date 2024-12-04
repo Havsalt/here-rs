@@ -48,16 +48,16 @@ struct Args {
     no_color: bool,
     #[arg(
         long = "posix",
-        conflicts_with = "no_posix",
+        conflicts_with = "no_posix_style",
         help = "Force posix style path"
     )]
-    posix: bool,
+    posix_style: bool,
     #[arg(
         long = "no-posix",
-        conflicts_with = "posix",
+        conflicts_with = "posix_style",
         help = "Prevent posix style path"
     )]
-    no_posix: bool,
+    no_posix_style: bool,
     #[arg(
         long = "select-first",
         help = "Select first option if multiresult (when: -w/--from-where)"
@@ -74,22 +74,22 @@ fn main() -> ExitCode {
             if args.no_color {
                 println!("[Error] Argument [PROGRAM SEARCH] cannot be \".\"")
             } else {
-                let error = "[Error]".crimson();
+                let label = "[Error]".crimson();
                 let msg1 = "Argument".gray();
                 let arg = "[PROGRAM SEARCH]".white();
                 let msg2 = "cannot be".gray();
                 let program = "\".\"".white();
-                println!("{error} {msg1} {arg} {msg2} {program}");
+                println!("{label} {msg1} {arg} {msg2} {program}");
             }
             return ExitCode::FAILURE;
         }
         match string_path_from_search(&args.segment_or_name, &args.select_first_option) {
             Ok(string_path) => {
                 if string_path.is_empty() {
-                    let error = "[Error]".crimson();
+                    let label = "[Error]".crimson();
                     let msg = "Could not find".gray();
                     let program = format!("\"{}\"", args.segment_or_name).white(); // White
-                    println!("{error} {msg} {program}");
+                    println!("{label} {msg} {program}");
                     return ExitCode::FAILURE;
                 } else {
                     PathBuf::from(string_path)
@@ -108,9 +108,14 @@ fn main() -> ExitCode {
 
     if args.resolve_symlink {
         if path.is_symlink() {
-            path = fs::read_link(path).unwrap();  // TODO: Handle `.unwrap()`
+            path = fs::read_link(path).unwrap(); // TODO: Handle `.unwrap()`
         } else {
-            println!("[Warning] {} is not a symlink", path.display());
+            let label = "[Warning]".orange();
+            let msg1 = "Path".gray();
+            let value = path.display().to_string().bright_white();
+            let msg2 = "is not a".gray();
+            let msg3 = "symlink".cyan();
+            println!("{label} {msg1} {value} {msg2} {msg3}");
         }
     }
 
@@ -124,9 +129,9 @@ fn main() -> ExitCode {
     // Apply styling options
     let mut visual = path.display().to_string();
 
-    if args.posix {
+    if args.posix_style {
         visual = visual.replace("\\", "/")
-    } else if args.no_posix {
+    } else if args.no_posix_style {
         visual = visual.replace("/", "\\")
     }
 
