@@ -17,6 +17,7 @@ use util::string_path_from_search;
 
 #[derive(Parser, Debug)]
 #[command(
+    name = "here",
     version,
     about = "Copies the current working directory to clipboard",
     long_about = None,
@@ -68,12 +69,16 @@ fn main() -> ExitCode {
     // Select where to extract the path from
     let mut path = if args.where_search {
         if args.segment_or_name == "." {
-            let error = "[Error]".crimson();
-            let msg1 = "Argument".gray();
-            let arg = "[PROGRAM SEARCH]".white();
-            let msg2 = "cannot be".gray();
-            let program = "\".\"".white();
-            println!("{error} {msg1} {arg} {msg2} {program}");
+            if args.no_color {
+                println!("[Error] Argument [PROGRAM SEARCH] cannot be \".\"")
+            } else {
+                let error = "[Error]".crimson();
+                let msg1 = "Argument".gray();
+                let arg = "[PROGRAM SEARCH]".white();
+                let msg2 = "cannot be".gray();
+                let program = "\".\"".white();
+                println!("{error} {msg1} {arg} {msg2} {program}");
+            }
             return ExitCode::FAILURE;
         }
         match string_path_from_search(&args.segment_or_name, &args.select_first_option) {
