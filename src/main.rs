@@ -13,7 +13,6 @@ mod colorize_ext;
 use colorize_ext::ColorizeExt;
 
 mod fetch;
-use fetch::string_path_from_search;
 
 #[derive(Parser, Debug)]
 #[command(
@@ -84,7 +83,7 @@ fn main() -> ExitCode {
             }
             return ExitCode::FAILURE;
         }
-        match string_path_from_search(&args.segment_or_name, &args.select_first_option) {
+        match fetch::string_path_from_search(&args.segment_or_name, &args.select_first_option) {
             Ok(string_path) => {
                 if string_path.is_empty() {
                     let label = "[Error]".crimson();
@@ -108,14 +107,23 @@ fn main() -> ExitCode {
     path = path.clean();
 
     if args.resolve_symlink {
-        if path.is_symlink() {
-            path = fs::read_link(path).unwrap(); // TODO: Handle `.unwrap()`
+        if path.exists() {
+            if path.is_symlink() {
+                path = fs::read_link(path).expect("path is symlink that exists");
+            } else {
+                let label = "[Warning]".orange();
+                let msg1 = "Path".gray();
+                let value = path.display().to_string().bright_white();
+                let msg2 = "is".gray();
+                let msg3 = "not a symlink".cyan();
+                println!("{label} {msg1} {value} {msg2} {msg3}");
+            }
         } else {
             let label = "[Warning]".orange();
-            let msg1 = "Path".gray();
+            let msg1 = "Symlink".gray();
             let value = path.display().to_string().bright_white();
-            let msg2 = "is not a".gray();
-            let msg3 = "symlink".cyan();
+            let msg2 = "does".gray();
+            let msg3 = "not exist".cyan();
             println!("{label} {msg1} {value} {msg2} {msg3}");
         }
     }
@@ -139,7 +147,7 @@ fn main() -> ExitCode {
     if args.wrap_quote {
         visual = format!("\"{}\"", visual)
     }
-
+    
     if args.escape_backslash {
         visual = visual.replace("\\", "\\\\")
     }
@@ -148,11 +156,13 @@ fn main() -> ExitCode {
     if !args.no_copy {
         cli_clipboard::set_contents(visual.to_owned()).expect("clipboard opened successfully");
     }
+
     if args.no_color {
         println!("{}", visual);
     } else {
         println!("{}", visual.salmon());
     }
+
     if args.change_directory {
         let mut keyboard = Enigo::new(&Settings::default()).unwrap();
         let quoted_path = format!("\"{}\"", path.display());
