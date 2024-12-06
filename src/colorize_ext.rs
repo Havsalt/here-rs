@@ -7,7 +7,7 @@ pub trait ColorizeExt: Colorize {
     fn orange(self) -> ColoredString;
 }
 
-// Implement the new trait for any type that implements Colorize
+// Implement the new trait for any type that implements `Colorize`
 impl<T: Colorize> ColorizeExt for T {
     fn crimson(self) -> ColoredString {
         self.truecolor(220, 20, 60)
