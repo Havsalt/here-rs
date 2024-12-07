@@ -26,8 +26,8 @@ mod fetch;
     styles = STYLES
 )]
 struct Args {
-    #[arg(default_value = ".", value_name = "PATH SEGMENT / PROGRAM SEARCH")]
-    segment_or_name: String,
+    #[arg(value_name = "PATH SEGMENT / PROGRAM SEARCH")]
+    path_segment_or_program_search: Option<String>,
     #[arg(short = 'f', long = "folder", help = "Get folder component of result")]
     folder_component: bool,
     #[arg(short, long = "from-where", help = "Use `where` command to search")]
@@ -82,7 +82,7 @@ struct Args {
             "no_posix_style",
             "select_first_option",
             "generate_markdown",
-            "segment_or_name"
+            "path_segment_or_program_search"
         ]
     )]
     pub generate_completions: Option<Shell>,
@@ -102,7 +102,7 @@ struct Args {
             "no_posix_style",
             "select_first_option",
             "generate_completions",
-            "segment_or_name"
+            "path_segment_or_program_search"
         ]
     )]
     pub generate_markdown: bool,
@@ -130,37 +130,43 @@ fn main() -> ExitCode {
 
     // Select where to extract the path from
     let mut path = if args.where_search {
-        if args.segment_or_name == "." {
+        if let Some(search_name) = args.path_segment_or_program_search {
+            match fetch::string_path_from_search(&search_name, &args.select_first_option) {
+                Ok(string_path) => {
+                    if string_path.is_empty() {
+                        if args.no_color {
+                            println!("[Error] Could not find \"{search_name}\"");
+                        } else {
+                            let label = "[Error]".crimson();
+                            let msg = "Could not find".gray();
+                            let program = format!("\"{}\"", search_name).white();
+                            println!("{label} {msg} {program}");
+                        }
+                        return ExitCode::FAILURE;
+                    } else {
+                        PathBuf::from(string_path)
+                    }
+                }
+                Err(exit_code) => return exit_code,
+            }
+        } else {
             if args.no_color {
-                println!("[Error] Argument [PROGRAM SEARCH] cannot be \".\"")
+                println!("[Error] Argument [PROGRAM SEARCH] is required")
             } else {
                 let label = "[Error]".crimson();
                 let msg1 = "Argument".gray();
                 let arg = "[PROGRAM SEARCH]".white();
-                let msg2 = "cannot be".gray();
-                let program = "\".\"".white();
-                println!("{label} {msg1} {arg} {msg2} {program}");
+                let msg2 = "is".gray();
+                let msg3 = "required".white();
+                println!("{label} {msg1} {arg} {msg2} {msg3}");
             }
             return ExitCode::FAILURE;
         }
-        match fetch::string_path_from_search(&args.segment_or_name, &args.select_first_option) {
-            Ok(string_path) => {
-                if string_path.is_empty() {
-                    let label = "[Error]".crimson();
-                    let msg = "Could not find".gray();
-                    let program = format!("\"{}\"", args.segment_or_name).white();
-                    println!("{label} {msg} {program}");
-                    return ExitCode::FAILURE;
-                } else {
-                    PathBuf::from(string_path)
-                }
-            }
-            Err(exit_code) => return exit_code,
-        }
-    } else {
+    } else { // If not using `-w/--from-where`, use current working directory
+        let segment = args.path_segment_or_program_search.unwrap_or(".".to_owned());
         current_dir()
             .expect("cwd was found and have permission")
-            .join(&args.segment_or_name)
+            .join(segment)
     };
 
     // Apply path manipulations
@@ -171,20 +177,28 @@ fn main() -> ExitCode {
             if path.is_symlink() {
                 path = fs::read_link(path).expect("path is symlink that exists");
             } else {
-                let label = "[Warning]".orange();
-                let msg1 = "Path".gray();
-                let value = path.display().to_string().bright_white();
-                let msg2 = "is".gray();
-                let msg3 = "not a symlink".cyan();
-                println!("{label} {msg1} {value} {msg2} {msg3}");
+                if args.no_color {
+                    println!("[Warning] Path {} is not a symlink", path.display());
+                } else {
+                    let label = "[Warning]".orange();
+                    let msg1 = "Path".gray();
+                    let value = path.display().to_string().bright_white();
+                    let msg2 = "is".gray();
+                    let msg3 = "not a symlink".cyan();
+                    println!("{label} {msg1} {value} {msg2} {msg3}");
+                }
             }
         } else {
-            let label = "[Warning]".orange();
-            let msg1 = "Symlink".gray();
-            let value = path.display().to_string().bright_white();
-            let msg2 = "does".gray();
-            let msg3 = "not exist".cyan();
-            println!("{label} {msg1} {value} {msg2} {msg3}");
+            if args.no_color {
+                println!("[Warning] Symlink {} does not exist", path.display());
+            } else {
+                let label = "[Warning]".orange();
+                let msg1 = "Symlink".gray();
+                let value = path.display().to_string().bright_white();
+                let msg2 = "does".gray();
+                let msg3 = "not exist".cyan();
+                println!("{label} {msg1} {value} {msg2} {msg3}");
+            }
         }
     }
 
