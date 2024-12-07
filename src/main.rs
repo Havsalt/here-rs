@@ -21,7 +21,7 @@ mod fetch;
 #[command(
     name = "here",
     version,
-    about = "Copies the current working directory to clipboard",
+    about = "Effortlessly grab and copy file locations",
     long_about = None,
     styles = STYLES
 )]
