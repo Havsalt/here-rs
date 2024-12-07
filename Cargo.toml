@@ -1,8 +1,8 @@
 [package]
 name = "havsalt-tools-here"
-version = "0.16.0"
+version = "0.16.1"
 edition = "2021"
-description = "Copies the current working directory to clipboard"
+description = "Effortlessly grab and copy file locations"
 license = "MIT"
 homepage = "https://github.com/havsalt/here-rs"
 authors = ["Havsalt <77575424+Havsalt@users.noreply.github.com>"]
