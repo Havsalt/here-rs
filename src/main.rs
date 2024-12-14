@@ -25,21 +25,23 @@ mod fetch;
 ///
 /// Usefull combinations of flags:
 ///
-/// * here => Copy current working directory to clipboard
+/// * *none* => Copy current working directory to clipboard
 ///           and print colored result
 ///
-/// * here -wf => Copy folder location of binary/script, that is found in `PATH`
+/// * `-wf` => Copy folder location of binary/script, that is found in `PATH`
 ///
-/// * here -wfdnc => Change current working directory to where the binary/script is located
+/// * `-wfdnc` => Change current working directory to where the binary/script is located
 ///
-/// * here -qe => Copy as string path, similar to a literal string
+/// * `-qe` => Copy as string path, similar to a literal string
 ///
 #[derive(Parser, Debug)]
 #[command(name = "here", version, styles = STYLES)]
 struct Args {
     /// Additional path segment or program name used for searching
     ///
-    /// Normal mode: This argument will be treated as path segment,
+    /// Default mode: If not present, uses path of `current working directory`
+    ///
+    /// Segment mode: Treats argument as a path segment,
     /// that will be appended to the path of current working directory
     ///
     /// Search mode: Searches for the binary/program,
@@ -67,7 +69,7 @@ struct Args {
     /// This can be skipped by supplying `--select-first`,
     /// to select the first option
     ///
-    /// *Error* if search fails to find the binary/script
+    /// **Error** if search fails to find the binary/script
     #[arg(
         short,
         long = "from-where",
@@ -84,7 +86,7 @@ struct Args {
 
     /// Escape backslashes
     ///
-    /// "\" -> "\\"
+    /// "\\" -> "\\\\"
     ///
     /// Turn every backslash into a pair of blackslashes
     #[arg(short = 'e', long)]
@@ -98,7 +100,7 @@ struct Args {
     ///
     /// The path the symlink was pointing to will instead be used
     ///
-    /// *Warning* if target path is not a symlink
+    /// **Warning** if target path is not a symlink
     #[arg(short = 'r', long)]
     resolve_symlink: bool,
 
