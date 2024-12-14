@@ -17,58 +17,131 @@ use colorize_ext::ColorizeExt;
 
 mod fetch;
 
+/// Effortlessly grab and copy file locations
+///
+/// The path that was copied to clipboard will be printed with color.
+/// Coloring can be turned off with `-c/--no-color`,
+/// and copying to clipboard is ignored with `-n/--no-copy`
+///
+/// Usefull combinations of flags:
+///
+/// * here => Copy current working directory to clipboard
+///           and print colored result
+///
+/// * here -wf => Copy folder location of binary/script, that is found in `PATH`
+///
+/// * here -wfdnc => Change current working directory to where the binary/script is located
+///
+/// * here -qe => Copy as string path, similar to a literal string
+///
 #[derive(Parser, Debug)]
-#[command(
-    name = "here",
-    version,
-    about = "Effortlessly grab and copy file locations",
-    long_about = None,
-    styles = STYLES
-)]
+#[command(name = "here", version, styles = STYLES)]
 struct Args {
+    /// Additional path segment or program name used for searching
+    ///
+    /// Normal mode: This argument will be treated as path segment,
+    /// that will be appended to the path of current working directory
+    ///
+    /// Search mode: Searches for the binary/program,
+    /// and uses that path instead of current working directory.
+    /// Requires: `-w/--from-where`
     #[arg(value_name = "PATH SEGMENT / PROGRAM SEARCH")]
     path_segment_or_program_search: Option<String>,
-    #[arg(short = 'f', long = "folder", help = "Get folder component of result")]
+
+    /// Get folder component of result
+    ///
+    /// If the target path is already a folder,
+    /// this flag will be ignored
+    #[arg(short = 'f', long = "folder")]
     folder_component: bool,
-    #[arg(short, long = "from-where", help = "Use `where` command to search")]
+
+    /// Use `where` command to search
+    ///
+    /// On Windows, the `where` command will be called in a subprocess.
+    /// The result is the path to that binary/script
+    ///
+    /// Todo: On Linux, use coresponding command to `where`
+    ///
+    /// If multiple results are found,
+    /// a prompt will be used to select which path to use.
+    /// This can be skipped by supplying `--select-first`,
+    /// to select the first option
+    ///
+    /// *Error* if search fails to find the binary/script
+    #[arg(
+        short,
+        long = "from-where",
+        requires = "path_segment_or_program_search"
+    )]
     where_search: bool,
-    #[arg(
-        short = 'd',
-        long,
-        help = "Set current working directory to result (schedules writing)"
-    )]
+
+    /// Set current working directory to result
+    ///
+    /// This is done by scheduling keyboard events
+    /// that will write to the terminal after program execution
+    #[arg(short = 'd', long)]
     change_directory: bool,
-    #[arg(short = 'e', long, help = "Escape backslashes (\\ -> \\\\)")]
+
+    /// Escape backslashes
+    ///
+    /// "\" -> "\\"
+    ///
+    /// Turn every backslash into a pair of blackslashes
+    #[arg(short = 'e', long)]
     escape_backslash: bool,
-    #[arg(short = 'q', long, help = "Wrap result in double quotes")]
+
+    /// Wrap result in double quotes
+    #[arg(short = 'q', long)]
     wrap_quote: bool,
-    #[arg(short = 'r', long, help = "Resolve symlink path")]
+
+    /// Resolve symlink path
+    ///
+    /// The path the symlink was pointing to will instead be used
+    ///
+    /// *Warning* if target path is not a symlink
+    #[arg(short = 'r', long)]
     resolve_symlink: bool,
-    #[arg(short = 'n', long, help = "Prevent copy to clipboard")]
+
+    /// Prevent copy to clipboard
+    ///
+    /// The result path is still printed
+    #[arg(short = 'n', long)]
     no_copy: bool,
-    #[arg(short = 'c', long, help = "Suppress color")]
+
+    /// Suppress color
+    ///
+    /// Prevents the use of ANSI escape codes,
+    /// that would normally be used to show colors
+    #[arg(short = 'c', long)]
     no_color: bool,
-    #[arg(
-        long = "posix",
-        conflicts_with = "no_posix_style",
-        help = "Force posix style path"
-    )]
+
+    /// Force posix style path
+    ///
+    /// Replaces all backslashes with forwardslashes
+    #[arg(long = "posix", conflicts_with = "no_posix_style")]
     posix_style: bool,
-    #[arg(
-        long = "no-posix",
-        conflicts_with = "posix_style",
-        help = "Prevent posix style path"
-    )]
+
+    /// Prevent posix style path
+    ///
+    /// Replaces all forwardslashes with backslashes
+    #[arg(long = "no-posix", conflicts_with = "posix_style")]
     no_posix_style: bool,
-    #[arg(
-        long = "select-first",
-        requires = "where_search",
-        help = "Select first option if multiresult (when: -w/--from-where)"
-    )]
+
+    /// Select first option if multiresult
+    ///
+    /// Requires: `-w/--from-where`
+    #[arg(long = "select-first", requires = "where_search")]
     select_first_option: bool,
-    #[arg(long = "completions",
+
+    /// Generate completions for given shell
+    ///
+    /// The generated script will be printed,
+    /// and can be piped to a completion file for the given shell
+    ///
+    /// Cannot be paired with either positional arguments or flags
+    #[arg(
+        long = "completions",
         value_name = "SHELL",
-        help = "Generate completions for given shell",
         conflicts_with_all = [
             "folder_component",
             "where_search",
@@ -85,10 +158,17 @@ struct Args {
             "path_segment_or_program_search"
         ]
     )]
-    pub generate_completions: Option<Shell>,
+    generate_completions: Option<Shell>,
+
+    /// Generate markdown help page
+    ///
+    /// A help page with information about the program
+    /// will be generated in the Markdown format,
+    /// and can be piped to a file for later use
+    ///
+    /// Cannot be paired with either positional arguments or flags
     #[arg(
         long = "markdown",
-        help = "Generate markdown help page",
         conflicts_with_all = [
             "folder_component",
             "where_search",
@@ -105,7 +185,7 @@ struct Args {
             "path_segment_or_program_search"
         ]
     )]
-    pub generate_markdown: bool,
+    generate_markdown: bool,
 }
 
 fn main() -> ExitCode {
@@ -162,8 +242,11 @@ fn main() -> ExitCode {
             }
             return ExitCode::FAILURE;
         }
-    } else { // If not using `-w/--from-where`, use current working directory
-        let segment = args.path_segment_or_program_search.unwrap_or(".".to_owned());
+    } else {
+        // If not using `-w/--from-where`, use current working directory
+        let segment = args
+            .path_segment_or_program_search
+            .unwrap_or(".".to_owned());
         current_dir()
             .expect("cwd was found and have permission")
             .join(segment)
