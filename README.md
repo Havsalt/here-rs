@@ -4,14 +4,14 @@ Effortlessly grab and copy file locations
 
 ## Table of Contents
 
-- [Rational](#rational)
+- [Rationale](#rationale)
 - [Help page](#help-page-for-here)
   - [Usage](#usage)
   - [Arguments](#arguments)
   - [Options](#options)
 - [License](#license)
 
-## Rational
+## Rationale
 
 This tool was originally designed to simply copy path of `current working directory` into the `clipboard`.
 As time went, more flags and features were added, like locating binaries and copying their path, or being able to resolve symlinks.
