@@ -16,7 +16,7 @@ Effortlessly grab and copy file locations
 This tool was originally designed to simply copy path of `current working directory` into the `clipboard`.
 As time went, more flags and features were added, like locating binaries and copying their path, or being able to resolve symlinks.
 This could have been done by making `here` an alias, that calls `pwd` and then pipes the result *correctly* into `clip` (on PowerShell).
-I instead chose to use this as an excuse to try `Rust` for the first proper time.
+Instead I chose to use this as an excuse to try `Rust` for the first proper time.
 It was also a much-needed speedup from the [`Python` solution](https://github.com/havsalt/here) I originally came up with.
 Now it's feature rich and blazingly fast.
 
