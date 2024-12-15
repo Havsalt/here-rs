@@ -1,6 +1,6 @@
 [package]
 name = "havsalt-tools-here"
-version = "0.16.3"
+version = "0.16.4"
 edition = "2021"
 description = "Effortlessly grab and copy file locations"
 license = "MIT"
