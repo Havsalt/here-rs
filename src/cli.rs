@@ -10,7 +10,7 @@ use havsalt_clap_styles::STYLES;
 ///
 /// Usefull combinations of flags:
 ///
-/// * *none* => Copy current working directory to clipboard
+/// * _none_ => Copy current working directory to clipboard
 ///           and print colored result
 ///
 /// * `-wf` => Copy folder location of binary/script, that is found in `PATH`
