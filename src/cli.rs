@@ -120,14 +120,14 @@ pub struct Cli {
     #[arg(long = "select-first", requires = "where_search")]
     pub select_first_option: bool,
 
-    /// Generate completions for given shell
+    /// Generate completion script for given shell
     ///
     /// The generated script will be printed,
     /// and can be piped to a completion file for the given shell
     ///
-    /// Cannot be paired with either positional arguments or flags
+    /// Cannot be paired with positional arguments or flags
     #[arg(
-        long = "completions",
+        long = "completion",
         value_name = "SHELL",
         conflicts_with_all = [
             "folder_component",

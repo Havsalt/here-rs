@@ -104,11 +104,11 @@ Usefull combinations of flags:
 
     Requires: `-w/--from-where`
 
-- `--completions <SHELL>` — Generate completions for given shell
+- `--completion <SHELL>` — Generate completion script for given shell
 
     The generated script will be printed, and can be piped to a completion file for the given shell
 
-    Cannot be paired with either positional arguments or flags
+    Cannot be paired with positional arguments or flags
 
   Possible values: `bash`, `elvish`, `fish`, `powershell`, `zsh`
 
