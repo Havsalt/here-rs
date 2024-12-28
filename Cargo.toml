@@ -1,5 +1,5 @@
 [package]
-name = "havsalt-tools-here"
+name = "havsalt-here"
 version = "0.17.0"
 edition = "2021"
 description = "Effortlessly grab and copy file locations"
