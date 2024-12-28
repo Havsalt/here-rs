@@ -427,7 +427,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "havsalt-tools-here"
+name = "havsalt-here"
 version = "0.17.0"
 dependencies = [
  "clap",
